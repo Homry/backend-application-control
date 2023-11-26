@@ -10,13 +10,22 @@ from src.database import Database
 
 class Application:
     def __init__(self, socket: Socket, db: Database):
-        tmp = os.listdir('/Users')
-        default = ['All Users', 'Default', 'Default User', 'desktop.ini', 'Public', 'Все пользователи']
+        tmp = os.listdir("/Users")
+        default = [
+            "All Users",
+            "Default",
+            "Default User",
+            "desktop.ini",
+            "Public",
+            "Все пользователи",
+        ]
         user = [i for i in tmp if i not in default][0]
-        self.link = f'/Users/{user}/desktop'
-        application = [item for item in os.listdir(self.link) if item.split('.')[-1] == 'lnk']
-        self.application = {item: f'{self.link}/{item}' for item in application}
-        self.app_tuple = namedtuple('app_tuple', 'app checker')
+        self.link = f"/Users/{user}/desktop"
+        application = [
+            item for item in os.listdir(self.link) if item.split(".")[-1] == "lnk"
+        ]
+        self.application = {item: f"{self.link}/{item}" for item in application}
+        self.app_tuple = namedtuple("app_tuple", "app checker")
         self.open_apps = {}
         self.socket = socket
         self.db = db
@@ -24,8 +33,14 @@ class Application:
     def run_app(self, app_name: str) -> bool:
         if app_name in self.open_apps:
             return False
-        application = subprocess.Popen(self.application[app_name], shell=True, stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, close_fds=True)
+        application = subprocess.Popen(
+            self.application[app_name],
+            shell=True,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            close_fds=True,
+        )
         checker = ProcessChecker(application, app_name, self)
         checker.start()
         self.db.insert_data(app_name, "running")
@@ -61,12 +76,17 @@ class Application:
         asyncio.run(self.socket.send_message(app_name))
 
     def get_apps(self) -> list[tuple[str, str]]:
-        return list(map(lambda x: (x, 'is running') if x in self.open_apps and x in self.application else
-                    (x, 'is not running'), self.application))
-
+        return list(
+            map(
+                lambda x: (x, "is running")
+                if x in self.open_apps and x in self.application
+                else (x, "is not running"),
+                self.application,
+            )
+        )
 
 
 if __name__ == "__main__":
     app = Application()
     print(app.get_apps())
-    app.run_app('Rocket.Chat.lnk')
+    app.run_app("Rocket.Chat.lnk")

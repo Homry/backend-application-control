@@ -37,37 +37,38 @@ async def root():
 @app.get("/run/{name}")
 async def run(name):
     if application.run_app(name):
-        return {'info': f'{name} is running'}
+        return {"info": f"{name} is running"}
     else:
-        return {'info:' f'{name} has already been launched'}
+        return {"info:" f"{name} has already been launched"}
 
 
-@app.get('/stop/{name}')
+@app.get("/stop/{name}")
 async def stop(name):
     if application.close_app(name):
-        return {'info': f'{name} is stopped'}
+        return {"info": f"{name} is stopped"}
     else:
-        return {'info': f'{name} was not started'}
+        return {"info": f"{name} was not started"}
 
 
-@app.get('/stop_all')
+@app.get("/stop_all")
 async def stop_all():
     application.close_all()
-    return {'info': 'close all'}
+    return {"info": "close all"}
 
 
-@app.get('/get/app_name')
+@app.get("/get/app_name")
 async def get_names():
-    return {'apps': application.get_apps()}
+    return {"apps": application.get_apps()}
 
 
-@app.get('/get/status_all')
+@app.get("/get/status_all")
 async def get_all():
-    return {'db': db.get_data_all()}
+    return {"db": db.get_data_all()}
 
-@app.get('/get/status/{limit}/{page}')
+
+@app.get("/get/status/{limit}/{page}")
 async def get_data(limit, page):
-    return {'db': db.get_data_with_pagination(int(limit), int(page))}
+    return {"db": db.get_data_with_pagination(int(limit), int(page))}
 
 
 @app.websocket("/ws")
