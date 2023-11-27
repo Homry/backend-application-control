@@ -22,6 +22,13 @@ class Database:
         password = os.environ.get("PG_PASSWORD")
         database = os.environ.get("PG_DATABASE")
         port = os.environ.get("PG_PORT")
+        print({
+            "host": host,
+            "user": user,
+            "password": password,
+            "database": database,
+            "port": port,
+        })
         return {
             "host": host,
             "user": user,
@@ -30,25 +37,33 @@ class Database:
             "port": port,
         }
 
-    def connection(self, host, user, password, database, port):
+    def __connection_db(self, host, user, password, database, port):
         try:
             self.conn = psycopg2.connect(
-                database=database,
+                dbname=database,
                 user=user,
                 password=password,
                 host=host,
                 port=port,
             )
+            self.conn.autocommit = True
+            self.cursor = self.conn.cursor()
         except Exception as e:
-            print("Ошибка подключения")
-            return False
-        self.conn.autocommit = True
-        self.cursor = self.conn.cursor()
+            print("error")
 
+    def connection(self, host, user, password, database, port):
+        self.__connection_db(host, user, password, "postgres", port)
+        if not self.__check_db_exist(database):
+            self.__create_db(database)
+        else:
+            print(f"Бд уже существует")
+        self.cursor.close()
+        self.conn.close()
+        self.__connection_db(host, user, password, database, port)
         self.dbname = "status_app_db"
         self.table_name = "status_app"
-        if not self.__check_db_exist():
-            self.__create_db()
+        if not self.__check_schema_exist():
+            self.__create_schema()
         else:
             print("Схема уже существует")
 
@@ -59,14 +74,24 @@ class Database:
         self.__connection = True
         return True
 
-    def __check_db_exist(self):
+    def __check_db_exist(self, database):
+        self.cursor.execute(
+            "SELECT 1 FROM pg_database WHERE datname = %s;", (database,)
+        )
+        return self.cursor.fetchone()
+
+    def __create_db(self, database):
+        self.cursor.execute(f"CREATE DATABASE {database};")
+        print(f"create db {database}")
+
+    def __check_schema_exist(self):
         query = sql.SQL(
             "SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_namespace WHERE nspname = %s)"
         )
         self.cursor.execute(query, (self.dbname,))
         return self.cursor.fetchone()[0]
 
-    def __create_db(self):
+    def __create_schema(self):
         self.cursor.execute(
             sql.SQL("CREATE SCHEMA {}").format(sql.Identifier(self.dbname))
         )
