@@ -43,7 +43,8 @@ class Application:
         )
         checker = ProcessChecker(application, app_name, self)
         checker.start()
-        self.db.insert_data(app_name, "running")
+        if self.db.is_connect():
+            self.db.insert_data(app_name, "running")
         self.open_apps[app_name] = self.app_tuple(application, checker)
         return True
 
@@ -64,14 +65,16 @@ class Application:
             application = self.open_apps[app_name].app
             self.open_apps[app_name].checker.stop()
             self.terminate(application.pid)
-            self.db.insert_data(app_name, "stop")
+            if self.db.is_connect():
+                self.db.insert_data(app_name, "stop")
             self.open_apps.pop(app_name)
             return True
         else:
             return False
 
     def close_manual(self, app_name: str) -> None:
-        self.db.insert_data(app_name, "stop")
+        if self.db.is_connect():
+            self.db.insert_data(app_name, "stop")
         self.open_apps.pop(app_name)
         asyncio.run(self.socket.send_message(app_name))
 

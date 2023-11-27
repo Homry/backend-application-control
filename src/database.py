@@ -1,16 +1,47 @@
 import psycopg2
 from psycopg2 import sql
+import os
+from dotenv import load_dotenv
 
 
 class Database:
     def __init__(self):
-        self.conn = psycopg2.connect(
-            database="postgres",
-            user="postgres",
-            password="1234",
-            host="127.0.0.1",
-            port="5432",
-        )
+        self.table_name = None
+        self.cursor = None
+        self.dbname = None
+        self.__connection = self.connection(**self.__get_env_var())
+
+    def is_connect(self):
+        return self.__connection
+
+    @staticmethod
+    def __get_env_var():
+        load_dotenv()
+        host = os.environ.get("PG_HOST")
+        user = os.environ.get("PG_USER")
+        password = os.environ.get("PG_PASSWORD")
+        database = os.environ.get("PG_DATABASE")
+        port = os.environ.get("PG_PORT")
+        return {
+            "host": host,
+            "user": user,
+            "password": password,
+            "database": database,
+            "port": port,
+        }
+
+    def connection(self, host, user, password, database, port):
+        try:
+            self.conn = psycopg2.connect(
+                database=database,
+                user=user,
+                password=password,
+                host=host,
+                port=port,
+            )
+        except Exception as e:
+            print("Ошибка подключения")
+            return False
         self.conn.autocommit = True
         self.cursor = self.conn.cursor()
 
@@ -25,6 +56,8 @@ class Database:
             self.__create_table()
         else:
             print("Таблица уже существует")
+        self.__connection = True
+        return True
 
     def __check_db_exist(self):
         query = sql.SQL(

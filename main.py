@@ -1,3 +1,5 @@
+from multiprocessing import freeze_support
+
 import uvicorn
 from src.applications import Application
 from src.database import Database
@@ -18,10 +20,22 @@ async def root():
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>test manual closed</title>
+    <title>test</title>
 </head>
 <body>
-<b>
+<b>127.0.0.1:8000/run/{app_name} - Запустить приложение</b>
+<br>
+<b>127.0.0.1:8000/stop/{app_name} - Остановить приложение</b>
+<br>
+<b>127.0.0.1:8000/stop_all - Остановить все приложения</b>
+<br>
+<b>127.0.0.1:8000/get/app_name - Получить названия всех приложений с их статусами</b>
+<br>
+<b>127.0.0.1:8000/get/status_all - Получить все записи из бд</b>
+<br>
+<b>127.0.0.1:8000/get/status/{limit}/{page} - Полуить первые limit записей на page странице</b>
+<br>
+<b>127.0.0.1:8000/db/{host}/{user}/{password}/{database}/{port} - Подключиться к бд если произошла ошибка подключения </b>
 <script>
    let ws = new WebSocket(`ws://localhost:8000/ws`);
     ws.onmessage = function (event) {
@@ -63,12 +77,26 @@ async def get_names():
 
 @app.get("/get/status_all")
 async def get_all():
-    return {"db": db.get_data_all()}
+    if db.is_connect():
+        return {"db": db.get_data_all()}
+    else:
+        return {"status": "no connection with db"}
 
 
 @app.get("/get/status/{limit}/{page}")
 async def get_data(limit, page):
-    return {"db": db.get_data_with_pagination(int(limit), int(page))}
+    if db.is_connect():
+        return {"db": db.get_data_with_pagination(int(limit), int(page))}
+    else:
+        return {"status": "no connection with db"}
+
+
+@app.get("/db/{host}/{user}/{password}/{database}/{port}")
+async def connect_to_db(host, user, password, database, port):
+    if db.connection(host, user, password, database, port):
+        return {"status": "connection successful"}
+    else:
+        return {"status": "no connection with db"}
 
 
 @app.websocket("/ws")
@@ -84,4 +112,5 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 if __name__ == "__main__":
+    freeze_support()
     uvicorn.run("main:app")
