@@ -1,13 +1,14 @@
 from multiprocessing import freeze_support
-
 import uvicorn
 from src.applications import Application
 from src.database import Database
 from src.socket import Socket
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
+from dotenv import load_dotenv
 
 app = FastAPI()
+load_dotenv()
 socket = Socket()
 db = Database()
 application = Application(socket, db)

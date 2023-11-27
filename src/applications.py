@@ -10,16 +10,7 @@ from src.database import Database
 
 class Application:
     def __init__(self, socket: Socket, db: Database):
-        tmp = os.listdir("/Users")
-        default = [
-            "All Users",
-            "Default",
-            "Default User",
-            "desktop.ini",
-            "Public",
-            "Все пользователи",
-        ]
-        user = [i for i in tmp if i not in default][0]
+        user = os.environ.get("WIN_USER")
         self.link = f"/Users/{user}/desktop"
         application = [
             item for item in os.listdir(self.link) if item.split(".")[-1] == "lnk"

@@ -1,7 +1,6 @@
 import psycopg2
 from psycopg2 import sql
 import os
-from dotenv import load_dotenv
 
 
 class Database:
@@ -16,19 +15,20 @@ class Database:
 
     @staticmethod
     def __get_env_var():
-        load_dotenv()
         host = os.environ.get("PG_HOST")
         user = os.environ.get("PG_USER")
         password = os.environ.get("PG_PASSWORD")
         database = os.environ.get("PG_DATABASE")
         port = os.environ.get("PG_PORT")
-        print({
-            "host": host,
-            "user": user,
-            "password": password,
-            "database": database,
-            "port": port,
-        })
+        print(
+            {
+                "host": host,
+                "user": user,
+                "password": password,
+                "database": database,
+                "port": port,
+            }
+        )
         return {
             "host": host,
             "user": user,
